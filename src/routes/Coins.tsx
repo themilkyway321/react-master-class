@@ -34,7 +34,8 @@ const Coin = styled.li`
 `;
 
 const  Title = styled.h1`
-  color:${props => props.theme.accentColor}
+  color:${props => props.theme.accentColor};
+  font-size: 40px;
 `;
 
 
@@ -47,25 +48,54 @@ interface CoinInterface {
   is_active: boolean,
   type: string,
 };
+const Loader = styled.span`
+  font-size: 30px;
+  text-align: center;
+`;
 
+const Img = styled.img`
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+`;
+const CoinWrapper = styled.div`
+  display: flex;
+  align-items:center;
+`;
 function Coins() {
-  const [coins, SetCoins]= useState<CoinInterface[]>([]);
+  const [coins, SetCoins] = useState<CoinInterface[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(()=>{
+    (async() => {
+     const response = await fetch("https://api.coinpaprika.com/v1/coins");
+     const json = await response.json();
+     SetCoins(json.slice(0,100));
+     setLoading(false);
+    })();    
+  },[]);
+  console.log(coins);
   return (
     <Contatiner>
       <Header>
           <Title>Coins</Title>
       </Header>
-      <CoinsList>
+      {loading ? (<Loader>Loading....</Loader>) : (<CoinsList>
        {coins.map(coin => 
         <Coin key={coin.id}>
-        <Link to={`/${coin.id}`}>{coin.name} &rarr;</Link>
+        <Link to={{
+          pathname: `${coin.id}`,
+          state: { name: coin.name }
+        }}>
+          <CoinWrapper>
+            <Img src={`https://coinicons-api.vercel.app/api/icon/${coin.symbol.toLowerCase()}`} />
+            {coin.name} &rarr;
+          </CoinWrapper>
+          
+          </Link>
         </Coin>)}
-      </CoinsList>
+      </CoinsList>)}
     </Contatiner>
   );
 }
 export default Coins;
 
-function useState(arg0: never[]): [any, any] {
-  throw new Error("Function not implemented.");
-}

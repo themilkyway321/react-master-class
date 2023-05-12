@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import { Route, Switch, useLocation, useParams } from "react-router-dom";
+import { Link, Route, Switch, useLocation, useParams, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Price from "./Price";
 import Chart from "./Chart";
+import { fetchCoinInfo, fetchCoinTickers } from "../api";
+import { useQuery } from "react-query";
+import { Helmet } from "react-helmet";
+
 interface Params {
   coinId:string;
 }
@@ -24,6 +28,27 @@ const  Title = styled.h1`
 const Loader = styled.span`
   font-size: 30px;
   text-align: center;
+`;
+
+const Tabs = styled.div`
+  display: flex;
+  text-align: center;
+  gap: 10px;
+  margin: 25px 0;
+  
+`;
+const Tab = styled.span<{ isActive: boolean }>`
+  flex: 1;
+  border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.5);
+  font-size: 16px;
+  padding: 8px 5px;
+  a {
+    display: block;
+  }
+  color: ${(props) =>
+  props.isActive ? props.theme.accentColor : props.theme.textColor
+  } ;
 `;
 
 interface RouteState {
@@ -107,8 +132,16 @@ const Description = styled.p`
 `;
 function Coin() {
   const { coinId } = useParams<Params>();
-  const [loading, setLoading] = useState(true);
   const { state } = useLocation<RouteState>();
+  const priceMatch = useRouteMatch("/:coinId/price");
+  const chartMatch = useRouteMatch("/:coinId/chart");
+  const {isLoading: infoLoading, data: infoData} = useQuery<InfoData>(["info", coinId], () => fetchCoinInfo(coinId));
+  const {isLoading: tickersLoading, data: tickersData} = useQuery<PriceData>(["tickers", coinId], () => fetchCoinTickers(coinId),
+  {
+    refetchInterval:5000,
+  }
+  );
+/*   const [loading, setLoading] = useState(true);
   const [info, setInfo] = useState<InfoData>();
   const [priceData, setPriceData] = useState<PriceData>();
   useEffect(() => {
@@ -123,44 +156,53 @@ function Coin() {
       setPriceData(priceData);
       setLoading(false);
     })();
-  }, []);
+  }, []); */
+  const loading = infoLoading || tickersLoading;
   return(<Contatiner>
+    <Helmet>
+    <Title>{state?.name ? state.name : loading? "Loading...." : infoData?.name}</Title>
+    </Helmet>
   <Header>
-      <Title>{state?.name ? state.name : loading? "Loading...." : info?.name}</Title>
+      <Title>{state?.name ? state.name : loading? "Loading...." : infoData?.name}</Title>
   </Header>
   {loading ? (<Loader>Loading....</Loader>):(
 <>
    <Overview>
       <OverviewItem>
         <span>RANK:</span>
-        <span>{info?.rank}</span>
+        <span>{infoData?.rank}</span>
       </OverviewItem>
       <OverviewItem>
       <span>SYMBOL:</span>
-      <span>{info?.symbol}</span>
+      <span>{infoData?.symbol}</span>
     </OverviewItem>
     <OverviewItem>
-      <span>OPEN SOURCE:</span>
-      <span>{info?.open_source}</span>
+      <span>Price:</span>
+      <span>${tickersData?.quotes.USD.price}</span>
     </OverviewItem>
     </Overview>
-    <Description>{info?.description}</Description>
+    <Description>{infoData?.description}</Description>
     <Overview>
       <OverviewItem>
         <span>Total Suply:</span>
-        <span>{priceData?.total_supply}</span>
+        <span>{tickersData?.total_supply}</span>
       </OverviewItem>
       <OverviewItem>
         <span>Max Supply:</span>
-        <span>{priceData?.max_supply}</span>
+        <span>{tickersData?.max_supply}</span>
       </OverviewItem>
     </Overview>
+    <Tabs>
+      <Tab isActive={chartMatch !== null}><Link to={`/${coinId}/chart`}>Chart</Link></Tab>
+      <Tab isActive={priceMatch !== null}> <Link to={`/${coinId}/price`}>Price</Link></Tab>
+    </Tabs>
     <Switch>
-      <Route path={`/${coinId}/price`}>
+      <Route path={`/:coinId/price`}>
         <Price />
       </Route>
-      <Route path={`/${coinId}/chart`}>
-        <Chart />
+      <Route path={`/:coinId/chart`}>
+        
+        <Chart coinId={coinId} />
       </Route>
     </Switch>
 </>

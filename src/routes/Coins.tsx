@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 
 import styled from "styled-components";
 import { Link } from "react-router-dom";
+import { useQuery } from "react-query";
+import { fetchCoins } from "../api";
+import { Helmet } from "react-helmet";
 
 const Contatiner = styled.div`
 padding:0px 20px;
@@ -39,7 +42,7 @@ const  Title = styled.h1`
 `;
 
 
-interface CoinInterface {
+interface ICoin {
   id: string,
   name: string,
   symbol: string,
@@ -63,7 +66,8 @@ const CoinWrapper = styled.div`
   align-items:center;
 `;
 function Coins() {
-  const [coins, SetCoins] = useState<CoinInterface[]>([]);
+  const {isLoading, data} = useQuery<ICoin[]>("allCoins", fetchCoins)
+ /*  const [coins, SetCoins] = useState<ICoin[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(()=>{
     (async() => {
@@ -72,15 +76,18 @@ function Coins() {
      SetCoins(json.slice(0,100));
      setLoading(false);
     })();    
-  },[]);
-  console.log(coins);
+  },[]); */
+
   return (
     <Contatiner>
+       <Helmet>
+    <Title>Coins</Title>
+    </Helmet>
       <Header>
           <Title>Coins</Title>
       </Header>
-      {loading ? (<Loader>Loading....</Loader>) : (<CoinsList>
-       {coins.map(coin => 
+      {isLoading ? (<Loader>Loading....</Loader>) : (<CoinsList>
+       {data?.slice(0,100).map(coin => 
         <Coin key={coin.id}>
         <Link to={{
           pathname: `${coin.id}`,

@@ -80,9 +80,9 @@ function Coins() {
 
   return (
     <Contatiner>
-       <Helmet>
-    <Title>Coins</Title>
-    </Helmet>
+      <Helmet>
+        <title>Coins</title>
+      </Helmet>
       <Header>
           <Title>Coins</Title>
       </Header>

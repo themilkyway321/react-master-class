@@ -6,7 +6,8 @@ import Chart from "./Chart";
 import { fetchCoinInfo, fetchCoinTickers } from "../api";
 import { useQuery } from "react-query";
 import { Helmet } from "react-helmet";
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 interface Params {
   coinId:string;
 }
@@ -16,6 +17,14 @@ margin: 0 auto;
 max-width: 480px;
 `;
 const Header = styled.header`
+position:relative;
+span {
+  color:${props => props.theme.accentColor};
+  position:absolute;
+  left: 0;
+  font-size: 30px;
+  cursor: pointer;
+}
 height: 10vh;
 display: flex;
 justify-content: center;
@@ -136,11 +145,7 @@ function Coin() {
   const priceMatch = useRouteMatch("/:coinId/price");
   const chartMatch = useRouteMatch("/:coinId/chart");
   const {isLoading: infoLoading, data: infoData} = useQuery<InfoData>(["info", coinId], () => fetchCoinInfo(coinId));
-  const {isLoading: tickersLoading, data: tickersData} = useQuery<PriceData>(["tickers", coinId], () => fetchCoinTickers(coinId),
-  {
-    refetchInterval:5000,
-  }
-  );
+  const {isLoading: tickersLoading, data: tickersData} = useQuery<PriceData>(["tickers", coinId], () => fetchCoinTickers(coinId));
 /*   const [loading, setLoading] = useState(true);
   const [info, setInfo] = useState<InfoData>();
   const [priceData, setPriceData] = useState<PriceData>();
@@ -158,13 +163,19 @@ function Coin() {
     })();
   }, []); */
   const loading = infoLoading || tickersLoading;
-  return(<Contatiner>
+  return(
+  <Contatiner>
+    
     <Helmet>
-    <Title>{state?.name ? state.name : loading? "Loading...." : infoData?.name}</Title>
+    <title>
+          {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
+        </title>
     </Helmet>
   <Header>
-      <Title>{state?.name ? state.name : loading? "Loading...." : infoData?.name}</Title>
+  <span><Link to={`/`}><FontAwesomeIcon icon={faArrowLeft} /></Link></span>
+    <Title>{state?.name ? state.name : loading? "Loading...." : infoData?.name}</Title>
   </Header>
+  
   {loading ? (<Loader>Loading....</Loader>):(
 <>
    <Overview>

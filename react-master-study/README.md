@@ -497,7 +497,11 @@ function App() {
 
 export default App;
 ```
-
+## TypeScript를 위한 set up
+npx create-react-app 내 앱 이름 --template typescript<br>
+npm i --save-dev @types/styled-components<br>
+npm i styled-components
+<br>
 ## TypeScript
 
 TypeScript는 자바스크립트를 기반으로 한 프로그래밍 언어이다. 거의 같은데, 약간의 새로운 기능만 추가된 것. 
@@ -609,6 +613,9 @@ const [value, setValue] = useState("1");
 const [value, setValue] = useState(1);
 
 이렇게 기본값을 숫자로 주면, 타입스크립트가 value 의 타입을 number로 인식 
+>>추가 팁 
+일반적으로는 초기값을 지정하면 타입스크립트가 자동으로 타입을 유추하기 때문에 굳이 지정해주지 않아도 되지만 상태가 undefined또는 null이 될 수도 있거나 객체 또는 배열일 때는 지정해주는 것이 좋다. ex) const [ value, setValue ] = useState< Value | null >(null);
+
 ```
 import styled from "styled-components";
 import {useState} from "react";
@@ -690,9 +697,31 @@ export default App;
 
 
 ## 타입스크립트에서 theme 사용 
+https://styled-components.com/docs/api#typescript
+
+1. styled.d.ts 를 만든다. (참고: d.ts 는 declaration file 이라는 뜻이다.)
+2. theme.ts (테마) 를 만든다. 위 링크에서 형태를 복사 
+3. index.tsx 에 2에서 만든 테마를 주입한다.
+4. app.tsx 에서 props 로 받아 사용한다.
 
 
-theme.ts 파일 생성 
+styled.d.ts파일 
+```
+  // import original module declarations
+import 'styled-components';
+
+
+// and extend them!
+declare module 'styled-components' {
+  export interface DefaultTheme {
+      textColor:string;
+      bgColor:string;
+      btnColor:string;
+    };
+  }
+```
+  
+theme.ts 파일 
 ```
 import { DefaultTheme } from "styled-components";
 

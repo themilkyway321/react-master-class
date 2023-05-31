@@ -770,3 +770,469 @@ const Container = styled.div`
   color: ${(props) => props.theme.textColor};
   `;
   ```
+
+============================Router===================
+
+## Router 6버전
+
+### 1. BrowserRouter
+6에서는 (BrowserRouter)
+ Switch 대신 Routes를 썼다는 점. element부분 차이가 있음 
+ ```
+<Routes>
+      <Route path="/" element={<Home />}></Route>
+      <Route path="/about" element={<About />}></Route>
+</Routes>
+```
+
+<br>
+
+Router 5.3.4버전
+```
+ <Router>
+      <Switch>
+        <Route path="/movie/:id">
+          <Detail />
+        </Route>
+        <Route path="/">
+          <Home />
+        </Route>
+      </Switch>
+    </Router>
+```
+
+### 2. createBrowserRouter
+
+Router.tsx 파일
+
+createBrowserRouter 사용 url을 부모와 자식 관계로 주고 있음. 
+전체 route의 길잡이/지도라고 볼 수 있지. 
+```
+import { createBrowserRouter , Route, Routes, } from "react-router-dom";
+import Home from "./screens/Home";
+import About from "./screens/About";
+import Root from "./Root";
+
+const router = createBrowserRouter([
+  {
+    path:"/",
+    element:<Root />,
+    children:[
+      {
+        path:"",
+        element:<Home />,
+      },
+      {
+        path:"about",
+        element:<About />,
+      }
+    ]
+  }
+])
+export default router;
+```
+
+Root.tsx 파일 (이해를 쉽게 하기 위해 App.txs에서 이름 변경)
+
+Outlet을 사용하여 Router에 있는 링크들을 가져올 수 있지.
+```
+import React from 'react';
+import { Outlet } from 'react-router-dom';
+import Header from './components/Header';
+
+
+
+function Root() {
+  return (
+   <div>
+    <Header />
+    <Outlet />
+   </div>
+  );
+}
+
+export default Root;
+
+```
+
+
+index.tsx파일
+RouterProvider는 router라고 불리는 props를 가진다.  (Router.tsx 파일에서 만들었던 router)
+```
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { RouterProvider } from 'react-router-dom';
+import router from './Router';
+
+
+
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement
+);
+root.render(
+  <React.StrictMode>
+    <RouterProvider router={router}/>
+  </React.StrictMode>
+);
+
+
+```
+
+Header.tsx, Home.tsx, About.tsx 코드는 BrowserRouter랑 코드가 동일해 
+
+
+Header.tsx파일 
+
+```
+import { Link } from "react-router-dom";
+
+function Header(){
+  return (
+  <header>
+    <ul>
+      <li><Link to={"/"}>Home</Link></li>
+      <li><Link to={"/about"}>About</Link></li>
+    </ul>
+  </header>
+  );
+}
+
+export default Header;
+```
+
+### errorElement
+
+라우터 6버전이 멋진 점은 라우터들이 errorElement라는 것을 가진다는 점. 
+에러가 생긴 경우 보여주는 페이지.
+다른 멀쩡한 페이지가 에러의 영향을 받지 않게 해준다.
+
+
+Router.tsx 파일
+```
+import { createBrowserRouter , Route, Routes, } from "react-router-dom";
+import Home from "./screens/Home";
+import About from "./screens/About";
+import Root from "./Root";
+import NotFound from "./screens/NotFound";
+import ErrorComponent from "./components/ErrorComponent";
+
+const router = createBrowserRouter([
+  {
+    path:"/",
+    element:<Root />,
+    children:[
+      {
+        path:"",
+        element: <Home />,
+        errorElement: <ErrorComponent />,
+      },
+      {
+        path:"about",
+        element:<About />,
+      },
+    ],
+    errorElement: <NotFound />,
+  },
+])
+export default router;
+```
+
+NotFound.tsx파일 
+```
+function NotFound(){
+  return <h1>Not Found.</h1>
+}
+export default NotFound;
+```
+
+
+### useNavigate
+
+useNavigate
+
+링크이동인데, <Link />는 유저가 직접 클릭해야 이동하는 반면, useNavigate는 자동으로 이동
+
+Header.tsx파일
+
+```
+import { Link, useNavigate } from "react-router-dom";
+
+function Header(){
+  const navigate = useNavigate();
+  const onAboutClick = ()=> {
+    navigate("/about");
+  }
+  return (
+  <header>
+    <ul>
+      <li>
+        <Link to={"/"}>Home</Link>
+        </li>
+      <li><button onClick={onAboutClick}>About</button></li>
+    </ul>
+  </header>
+  );
+}
+
+export default Header;
+```
+
+### useParams
+
+
+useParams 훅은 < Route path >와 일치하는 현재 URL에서 동적 매개변수의 key/value 쌍 객체를 반환합니다. 하위 경로는 상위 경로에서 모든 매개변수를 상속합니다.
+```
+const params = useParams();
+```
+
+db파일
+db.ts
+```
+export const users = [
+  { 
+    id:1,
+    name:"nici"
+  },
+  {
+    id:2,
+    name:"lynn"
+  }
+]
+```
+
+Router.tsx 파일
+:userId로 params에 넘겨줄수있어
+```
+import { createBrowserRouter } from "react-router-dom";
+import Home from "./screens/Home";
+import About from "./screens/About";
+import Root from "./Root";
+import NotFound from "./screens/NotFound";
+import ErrorComponent from "./components/ErrorComponent";
+import User from "./screens/users/User";
+
+
+const router = createBrowserRouter([
+  {
+    path:"/",
+    element:<Root />,
+    children: [
+      {
+        path: "",
+        element: <Home />,
+        errorElement: <ErrorComponent />,
+      },
+      {
+        path: "about",
+        element:<About />,
+      },
+      {
+        path:"users/:userId",
+        element:<User />,
+      },
+    ],
+    errorElement: <NotFound />,
+  },
+])
+export default router;
+```
+
+User.tsx파일
+받아온 userId를 가지고 활용할 수 있어. 
+```
+import { useParams } from "react-router-dom";
+import { users } from "../../db";
+
+function User(){
+  const  {userId}  = useParams();
+
+  return <h1>User with it {userId} is named: {users[Number(userId)-1].name}</h1>;
+}
+
+export default User;
+```
+
+Home.tsx파일
+```
+import { Link } from "react-router-dom";
+import { users } from "../db";
+
+function Home() {
+  
+  return (
+  <div>
+    <h1>Users</h1>
+    <ul>
+      {users.map((user)=>(
+      <li key={user.id}>
+        <Link to={`/users/${user.id}`}>{user.name}</Link>
+      
+      </li>
+      )
+      )}
+    </ul>
+  </div>
+  );
+}
+export default Home;
+```
+
+
+### Outlet
+
+Outlet은 하위 경로 요소를 렌더링하기 위해 상위 경로 요소에서 사용한다. 
+
+이렇게 하면 하위 경로가 렌더링될 때 중첩된 UI가 표시될 수 있다. 
+
+
+Router.tsx파일
+
+users아래 followers라는 자식링크 추가 
+```
+import { createBrowserRouter } from "react-router-dom";
+import Home from "./screens/Home";
+import About from "./screens/About";
+import Root from "./Root";
+import NotFound from "./screens/NotFound";
+import ErrorComponent from "./components/ErrorComponent";
+import User from "./screens/users/User";
+import Followers from "./screens/users/Followers";
+
+
+const router = createBrowserRouter([
+  {
+    path:"/",
+    element:<Root />,
+    children: [
+      {
+        path: "",
+        element: <Home />,
+        errorElement: <ErrorComponent />,
+      },
+      {
+        path: "about",
+        element:<About />,
+      },
+      {
+        path:"users/:userId",
+        element:<User />,
+        children: [
+          {
+            path:"followers",
+            element: <Followers />
+          },
+        ]
+      },
+    ],
+    errorElement: <NotFound />,
+  },
+])
+export default router;
+```
+
+Followers.tsx
+```
+function Followers(){
+  return <h1>Followers</h1>
+}
+
+export default Followers;
+```
+
+User.tsx
+
+Outlet을 사용했기 때문에, See followers를 클릭했을때, 주소는 다음과 같이된다.  
+
+부모 주소: http://localhost:3000/users/1/
+자식 주소: http://localhost:3000/users/1/followers
+
+http://localhost:3000/users/1/followers 의 화면을 볼때, 부모주소에서 봤던  UI랑 Followers.tsx의 UI가 중첩되서 나타난다. 
+```
+import { Link, Outlet, useParams } from "react-router-dom";
+import { users } from "../../db";
+
+function User(){
+  const  {userId}  = useParams();
+
+  return (
+  <div>
+    
+    <h1>User with it {userId} is named: {users[Number(userId)-1].name}</h1>
+    <hr />
+   
+    <Link to="followers">See followers</Link>
+    <Outlet />
+    </div>
+ 
+  );
+}
+
+export default User;
+```
+
+
+### useOutletContext
+
+종종 상위 경로는 하위 경로와 state 또는 기타 값을 공유합니다.
+ Outlet에 기본 제공되는 context를 사용할 수도 있습니다.
+```
+< Outlet context={ {a:1, b:2} } />;
+
+const context = useOutletContext(); // {a:1, b:2}
+```
+
+User.tsx 에서 자식링크에 idOfMyUser라는 이름으로 userId값을 넘겨주고 
+```
+import { Link, Outlet, useParams } from "react-router-dom";
+import { users } from "../../db";
+
+function User(){
+  const  {userId}  = useParams();
+
+  return (
+  <div>
+    
+    <h1>User with it {userId} is named: {users[Number(userId)-1].name}</h1>
+    <hr />
+   
+    <Link to="followers">See followers</Link>
+    <Outlet context={{
+      idOfMyUser: userId
+    }} />
+    </div>
+ 
+  );
+}
+
+export default User;
+```
+
+Followers.tsx파일
+
+자식 링크에서는 idOfMyUser값을 받아온다. 
+```
+import { useOutletContext } from "react-router-dom";
+
+interface IFollowersContext {
+  idOfMyUser:number;
+}
+
+function Followers(){
+  const {idOfMyUser} = useOutletContext<IFollowersContext>();
+
+  return <h1>Here are user id {idOfMyUser}의 follower</h1>
+}
+
+export default Followers;
+```
+
+
+### useSearchParams
+
+useSearchParams 훅은 현재 위치에 대한 URL의 쿼리 문자열을 읽고 수정하는 데 사용됩니다. useState 훅과 마찬가지로 useSearchParams는 현재 위치의 search params와 이를 업데이트하는 데 사용할 수 있는 함수라는 두 가지 값의 배열을 반환합니다.
+setSearchParams 함수는 탐색과 같이 작동하지만 URL의 검색 부분에 대해서만 작동합니다.
+```
+let [searchParams, setSearchParams] = useSearchParams();
+
+setSearchParams(params);
+```

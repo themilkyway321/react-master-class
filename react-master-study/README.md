@@ -771,9 +771,22 @@ const Container = styled.div`
   `;
   ```
 
-============================Router===================
+============================Router 6버전===================
 
 ## Router 6버전
+
+>setup
+
+react-master-temp repository 
+
+npm i react-router-dom@6.4
+
+npx create-react-app 앱이름 --template typescript 
+
+
+npm i --save-dev @types/styled-components
+
+npm i styled-components
 
 ### 1. BrowserRouter
 6에서는 (BrowserRouter)
@@ -1236,3 +1249,220 @@ let [searchParams, setSearchParams] = useSearchParams();
 
 setSearchParams(params);
 ```
+
+
+============================Router 6버전===================
+
+## Router 5.3.0버전
+
+>setup
+
+react-master-class repository
+
+npm i react-router-dom@5.3.0 react-query
+
+npx create-react-app 앱이름 --template typescript 
+
+
+npm i --save-dev @types/styled-components
+
+npm i styled-components
+
+npm i --save-dev @types/react-router-dom
+
+
+>사용한 API
+
+CoinPaprika JSON
+https://api.coinpaprika.com/v1/coins
+
+## useParams 
+
+Router.tsx에서 coindId로 파라미터를 넘겨주고 
+```
+<Route path="/:coinId">
+          <Coin />
+        </Route>
+  ```
+
+Coin.tsx에서 coinId를 받아온다. 
+
+ const params = useParams(); 
+ console.log(params)하면 
+ object가 콘솔에 뜬다. 
+ 만약 url이 이거라면 http://localhost:3000/eth-ethereum
+
+ coinId:eth-ethereum 라고 뜨게 됌. 
+```
+interface Params {
+  coinId:string;
+}
+
+ const { coinId } = useParams<Params>();
+ ```
+
+
+ ## Styles
+
+### Reset CSS
+
+ Reset CSS
+https://github.com/zacanger/styled-reset/blob/master/src/index.ts
+
+Google Fonts
+https://fonts.google.com
+
+Source Sans Pro 폰트
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400&display=swap');
+font-family: 'Source Sans Pro', sans-serif;
+
+Flat UI Color
+https://flatuicolors.com/palette/gb
+
+createGlobalStyle (전역 스타일을 처리함)
+전역 스타일을 처리하는 특수 Styled Component를 생성하는 helper 함수
+https://styled-components.com/docs/api#createglobalstyle
+
+App.tsx에 import한다. 
+
+2개 이상을 return하기 위해 <></>를 사용.
+```
+import { createGlobalStyle } from "styled-components";
+const GlobalStyle = createGlobalStyle``;
+
+function App() {
+  return (
+  <>
+  <GlobalStyle />
+  <Router />
+  </>
+  
+  );
+}
+export default App;
+```
+
+### 타입스크립트에서 theme 사용한 방법으로 스타일을 준다. 
+
+## API데이터 가져오기 
+
+
+Coins.tsx파일
+```
+<!-- 우선 타입을 정의해주고 -->
+interface ICoin {
+  id: string,
+  name: string,
+  symbol: string,
+  rank: number,
+  is_new: boolean,
+  is_active: boolean,
+  type: string,
+};
+```
+
+컴포턴트가 처음 렌더링 할때만 호출할 수 있도록 useEffect 하고 []을 빈배열로 나둠. 
+
+(()=>(console.log))(); //바로 함수로 실행되도록 하는 코드 
+
+SetCoins(json.slice(0,100)); 100개 데이터만 가져오도록!
+
+코인 아이콘 api
+https://coinicons-api.vercel.app/
+```
+ <Img src={`https://coinicons-api.vercel.app/api/icon/${coin.symbol.toLowerCase()}`} />
+```
+
+
+```
+function Coins() {
+const [coins, SetCoins] = useState<ICoin[]>([]);
+const [loading, setLoading] = useState(true);
+useEffect(()=>{
+    (async() => {
+     const response = await fetch("https://api.coinpaprika.com/v1/coins");
+     const json = await response.json();
+     SetCoins(json.slice(0,100));
+     setLoading(false);
+    })();    
+  },[]); 
+
+  return (
+    <Contatiner>
+      <Helmet>
+        <title>Coins</title>
+      </Helmet>
+      <Header>
+          <Title>Coins</Title>
+      </Header>
+      {isLoading ? (<Loader>Loading....</Loader>) : (<CoinsList>
+          {coins.map((coin) => (
+            <Coin key={coin.id}>
+              <Link to={`/${coin.id}`}
+              
+                    <CoinWrapper>
+                  <Img src={`https://coinicons-api.vercel.app/api/icon/${coin.symbol.toLowerCase()}`} />
+                  {coin.name} &rarr;
+                </CoinWrapper>
+              
+              </Link>
+            </Coin>
+          ))}
+        </CoinsList>
+        )}
+    </Contatiner>
+  );
+}
+```
+
+
+## Link를 통해 object값을 보내기 
+
+화면 ui상에는 안나타나지만 뒤에서 데이터를 보내줄 수 있는 거얌
+```
+<Link to={{
+          pathname: `${coin.id}`,
+          state: { name: coin.name }
+        }}>
+         
+          
+          </Link>
+```     
+
+이제 Coin.tsx에서는 coinId를 파라미터로 받아오고 useLocation으로 Link에서 보내준 state 데이터 배열을 받아온다. 
+useLocation은 react-router-dom의 훅! 
+const location = useLocation();
+console.log(location) 해봐봐
+
+```
+interface RouteState {
+  name: string;
+};
+
+function Coin() {
+  const [loading, setLoading] = useState(true);
+  const { coinId } = useParams<RouteParams>();
+  const { state } = useLocation<RouteState>();
+  return (
+    <Container>
+      <Header>
+        <Title>{state?.name || "Loading..."}</Title>
+      </Header>
+      {loading ? <Loader>Loading...</Loader> : null}
+    </Container>
+  );
+}
+export default Coin;
+```
+
+왜 이렇게 사용할까? 
+
+메인 페이지에서 코인 이름의 리스트들이 보이고, 여기서 코인을 클릭하면 각각의 코인id페이지로 이동하지. 
+
+여기서 각각의 코인 id페이지 (예를들어, http://localhost:3000/usdc-usd-coin)를 보여줄때, 코인 이름까지 api로 부터 데이터를 받아올 필요가 없지.왜? 
+
+이미 코인이름을 이미 알고 있고, 그 코인이름을 클릭한 것이니까! 그래서 Link에 객체로 보내주고, 받아온 데이터를 바로 보여줄 수 있엄.
+
+하지만!!! 바로 코인 개별 페이지 http://localhost:3000/usdc-usd-coin 로 가면 에러가 난다. 
+
+http://localhost:3000/ 홈페이지에서 코인 개별 페이지를 클릭해야 에러가 안남. 왜? state는 홈페이지에서 코인을 클릭할때 생기므로 

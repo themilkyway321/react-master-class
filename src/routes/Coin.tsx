@@ -6,8 +6,8 @@ import Chart from "./Chart";
 import { fetchCoinInfo, fetchCoinTickers } from "../api";
 import { useQuery } from "react-query";
 import { Helmet } from "react-helmet";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 interface Params {
   coinId:string;
 }
@@ -172,7 +172,7 @@ function Coin() {
         </title>
     </Helmet>
   <Header>
-  <span><Link to={`/`}><FontAwesomeIcon icon={faArrowLeft} /></Link></span>
+  {/* <span><Link to={`/`}><FontAwesomeIcon icon={faArrowLeft} /></Link></span> */}
     <Title>{state?.name ? state.name : loading? "Loading...." : infoData?.name}</Title>
   </Header>
   

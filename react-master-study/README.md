@@ -1465,4 +1465,193 @@ export default Coin;
 
 하지만!!! 바로 코인 개별 페이지 http://localhost:3000/usdc-usd-coin 로 가면 에러가 난다. 
 
-http://localhost:3000/ 홈페이지에서 코인 개별 페이지를 클릭해야 에러가 안남. 왜? state는 홈페이지에서 코인을 클릭할때 생기므로 
+http://localhost:3000/ 홈페이지에서 코인 개별 페이지를 클릭해야 에러가 안남. 왜? state는 홈페이지에서 코인을 클릭할때 생기므로
+
+
+## Coin Data
+
+coin id로 코인 받기 (Coins)
+https://api.coinpaprika.com/v1/coins/btc-bitcoin
+https://api.coinpaprika.com/#operation/getCoinById
+
+coin id로 특정 코인에 대한 시세 정보 얻기 (Tickers)
+https://api.coinpaprika.com/v1/tickers/btc-bitcoin
+https://api.coinpaprika.com/#operation/getTickersById
+
+
+Coins.tsx에서 두줄로 가져왔었어 =>한줄로 줄일 수 있음. 
+```
+  useEffect(()=>{
+    (async() => {
+     const response = await fetch("https://api.coinpaprika.com/v1/coins");
+     const json = await response.json();
+    })();    
+  },[]); 
+```
+
+한줄로 이렇게. 
+```
+  useEffect(()=>{
+    (async() => {
+     const coins = await (await fetch("https://api.coinpaprika.com/v1/coins")).json();
+    })();    
+  },[]); 
+```
+
+
+>단축키
+
+Ctrl(Command)+K: 같은 문자열 선택
+
+Shift+Alt(Option)+i: 선택한 모든 문자열에 가장 우측 끝으로 포커싱
+
+Ctrl(Command)+Shift+오른쪽 화살표: 현재 선택한 문자열을 기준으로 우측 끝까지 문자열 선택
+
+
+
+가져온 데이터에 타입을 주기위해, 
+
+console.log(데이터)한다음 => 
+전역변수로 저장 => 
+Object.keys(전역변수이름).join() 과 Object.values(전역변수이름).map(v=>type of).join()등으로 해서 한꺼번에 가져온다!! 
+
+주의해야할점은 object라고 떴지만, 배열의 object인 경우가 있다. ITag의 인터페이스 정의해주고 tags:ITag[]로 줄 수 있다. 
+
+
+## Nested Routes
+
+버전 6의 Outlet부분과 동일 
+이 아래 코드를 Coin.tsx파일에 추가 
+```
+<Switch>
+      <Route path={`/:coinId/price`}>
+        <Price />
+      </Route>
+      <Route path={`/:coinId/chart`}>
+        
+        <Chart coinId={coinId} />
+      </Route>
+    </Switch>
+    ```
+
+
+## Coin페이지에 탭 만들기
+
+탭으로 연결하는 링크를 만들어주고 
+```
+ <Tabs>
+      <Tab isActive={chartMatch !== null}><Link to={`/${coinId}/chart`}>Chart</Link></Tab>
+      <Tab isActive={priceMatch !== null}> <Link to={`/${coinId}/price`}>Price</Link></Tab>
+    </Tabs>
+```
+
+useRouteMatch 라는 훅 사용. react router dom에서 제공하는 hook
+
+=>특정 url에 있는지 확인해주는 것
+
+price 링크에 있으면 priceMatch가 object로 보여주는데 object안에 true가 있음. 
+
+
+```
+  const priceMatch = useRouteMatch("/:coinId/price");
+  const chartMatch = useRouteMatch("/:coinId/chart");
+  ```
+
+  그래서 interfcae Tab에 isActive라는 props를 가진다고 해줄거야, 이 props는 boolean타입이라는 것을 정의해주고, 
+
+  const Tab = styled.span<{ isActive: boolean }>`
+
+chartMatch !== null 이 true면 isActive는 trur가된다. 
+  <Tab isActive={chartMatch !== null}><Link to={`/${coinId}/chart`}>Chart</Link></Tab>
+
+isActive는 true면, 글자 색을 accentColor로 변경!! (즉, 해당 탭이 활성화됐을 때, 글자 색 변경)
+  ```
+  const Tab = styled.span<{ isActive: boolean }>`
+  color: ${(props) =>
+  props.isActive ? props.theme.accentColor : props.theme.textColor
+  } ;
+`;
+```
+
+
+##  React Query
+
+React 애플리케이션에서 서버 state를 fetching, caching, synchronizing, updating할 수 있도록 도와주는 라이브러리
+"global state"를 건드리지 않고 React 및 React Native 애플리케이션에서 데이터를 가져오고, 캐시하고, 업데이트합니다.
+
+React Query의 제일 큰 장점은 api를 페이지를 로딩할때마다 불러오지 않아도 된다. 캐시에 데이터를 저장해주기 때문에
+
+index.tsx파일에 다음과 같이 추가
+
+QueryClient와  QueryClientProvider를 삽입하고 코드넣어준다. 
+```
+import ReactDOM from 'react-dom';
+import { ThemeProvider } from 'styled-components';
+import App from './App';
+import { theme } from './theme';
+import React from 'react';
+import { QueryClient, QueryClientProvider } from 'react-query';
+
+const queryClient = new QueryClient()
+
+ReactDOM.render(
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
+        <App />
+      </ThemeProvider>
+    </QueryClientProvider>
+  </React.StrictMode>,
+  document.getElementById("root")
+);
+```
+
+React Query사용하기 위해
+
+1. fetch함수를 만들어야 한다. fetch를 하는 함수이다. 
+api.ts파일을 확인해봐라 (따로, 파일을 만들어주었다. )
+
+2. useQuery 훅 사용 import { useQuery } from "react-query";
+```
+const {isLoading, data} = useQuery<ICoin[]>("allCoins", fetchCoins)
+```
+
+- useQuery 2가지 인자를 필요로 하는데, 첫번째는 고유키(고유식별자) 두번째는 fetch함수
+
+- useQuery는 isLoading이라는 불리는 boolean값을 return한다. 또 fechCoins의 data를 가져온다. 
+
+- fetcher함수가 loading중이라면 isLoading은 true가 된다. 
+
+- useQuery는 가 fetcher함수를 부르고 fecher함수가 끝나면, json을 data에 넣고, isLoading은 false가 된다. 
+
+3. React Query는 devtools을 가지고 있다. 
+
+ devtools를 통해 데이터들이 캐시에 어떻게 저장되는지 볼수 있음. 
+
+App.tsx파일
+```
+import { ReactQueryDevtools } from 'react-query/devtools'
+function App() {
+  return (
+  <>
+  <GlobalStyle />
+  <Router />
+  <ReactQueryDevtools initialIsOpen={true} />
+  </>
+  
+  );
+}
+export default App;
+```
+
+Coin.tsx파일 
+
+coinId를 argument(인자)로 넘겨줘야하므로 
+() => fetchCoinInfo(coinId) 이것을 넣어주었다. 
+
+
+["info", coinId] 이렇게 넣어준 이유는 coinId가 info랑 price 같아서. key는 각각 다른key, 즉 쿼리마다 고유한 key를 가져야함 
+```
+  const {isLoading: infoLoading, data: infoData} = useQuery<InfoData>(["info", coinId], () => fetchCoinInfo(coinId));
+  const {isLoading: tickersLoading, data: tickersData} = useQuery<PriceData>(["tickers", coinId], () => fetchCoinTickers(coinId));
+  ```

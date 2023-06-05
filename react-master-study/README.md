@@ -1655,3 +1655,141 @@ coinId를 argument(인자)로 넘겨줘야하므로
   const {isLoading: infoLoading, data: infoData} = useQuery<InfoData>(["info", coinId], () => fetchCoinInfo(coinId));
   const {isLoading: tickersLoading, data: tickersData} = useQuery<PriceData>(["tickers", coinId], () => fetchCoinTickers(coinId));
   ```
+
+=========6-state-management==========
+
+  Recoil은 React JS에서 사용할 수 있는 state management library.
+
+
+여기서 state management가 무엇이고 왜 필요한지 알아보기 위해 이전 암호화폐 앱에 라이트/다크모드 버튼을 추가.
+
+1. index.tsx에 있는 ThemeProvider를 App function으로 옮김.(이유는 useState works on App.)
+2. theme.tsx에 light theme을 추가.
+3. App function에 isDark state를 추가해서(useState) 삼항연산자를 활용해 state 값에 따라 theme이 바뀌게 설정.
+
+4. button 하나 만들고 거기에 Click event에 toggleDark 함수를 연동.
+
+
+>button을 Coins.tsx로 옮겼을 때 
+
+- toggleDark Prop: App -> Router-> Coins 에 다 보내줘야행
+
+>차트의 옵션값을 변경하기 위해(다크와 라이트에 따라)
+
+isDark Prop: App ->Router -> Coin ->Chart 에 다 보내줘야해 
+
+근데 만약 Recoil과 같은 state management 를 사용한다면 한 곳에 담아서 각 컴포넌트들이 필요할때 그 곳에 접속해서 사용할 수 있게 함. (isDark) 같이 담아두고. 
+
+차트도 (isDark)에 접근할 수 있고 , App도 (isDark)에 접근 할 수 있음 
+
+
+## Recoil
+npm install recoil
+
+RecoilRoot
+recoil 상태를 사용하는 컴포넌트는 부모 트리 어딘가에 나타나는 RecoilRoot 가 필요하다. Root 컴포넌트가 RecoilRoot를 넣기에 가장 좋은 장소다.
+
+Atom
+Atom은 상태(state)의 일부를 나타낸다. Atoms는 어떤 컴포넌트에서나 읽고 쓸 수 있다.
+atom의 값을 읽는 컴포넌트들은 암묵적으로 atom을 구독한다.
+그래서 atom에 어떤 변화가 있으면 그 atom을 구독하는 모든 컴포넌트들이 리렌더링 되는 결과가 발생할 것이다.
+atom(): 쓰기 가능한 state를 나타내는 atom를 만듭니다.
+```
+const textState = atom({
+key: 'textState', // 유니크한 ID(다른 atom/selector와 관련하여)
+default: '', // 기본값 (초기값)
+});
+```
+
+useRecoilState()
+컴포넌트가 atom을 읽고 쓰게 하기 위해서는 useRecoilState()를 아래와 같이 사용하면 된다.
+ex) const [text, setText] = useRecoilState(textState);
+
+https://recoiljs.org/ko/docs/introduction/getting-started
+
+- useRecoilValue(state)
+
+  Recoil state값을 반환합니다.
+  이 hook은 암묵적으로 주어진 상태에 컴포넌트를 구독합니다.
+  이 hook는 읽기 전용 상태와 쓰기 가능 상태에서 모두 동작하므로 컴포넌트가 상태를 읽을 수만 있게 하고 싶을 때에 추천하는 hook입니다. 이 hook을 React 컴포넌트에서 사용하면 상태가 업데이트 될 때 리렌더링을 하도록 컴포넌트를 구독합니다.
+  ex) const names = useRecoilValue(namesState);
+  https://recoiljs.org/ko/docs/api-reference/core/useRecoilValue/
+
+- useSetRecoilState(state)
+
+  Recoil state의 값을 업데이트하기 위한 setter 함수를 반환합니다.
+  상태를 변경하기 위해 비동기로 사용될 수 있는 setter 함수를 리턴합니다.
+  setter는 새로운 값이나 이전 값을 인수로 받는 updater 함수를 넘겨줍니다.
+  ex) const setNamesState = useSetRecoilState(namesState);
+  https://recoiljs.org/ko/docs/api-reference/core/useSetRecoilState/
+
+step 1. index.tsx파일에   <RecoilRoot>추가 
+
+```
+import {RecoilRoot } from "recoil";
+
+const queryClient = new QueryClient()
+
+ReactDOM.render(
+  <React.StrictMode>
+    <RecoilRoot>
+    <QueryClientProvider client={queryClient}>
+        <App />
+    </QueryClientProvider>
+    </RecoilRoot>
+  </React.StrictMode>,
+  document.getElementById("root")
+);
+
+```
+
+
+step2. atoms.ts파일 만들고 아래와 같이 추가
+
+```
+import { atom } from "recoil";
+
+export const isDarkAtom = atom ({
+   key:"isDark",
+   default:true,
+})
+```
+
+step 3. App.tsx파일에 
+const isDark = useRecoilValue(isDarkAtom); 컴포넌트 만들어주고 , <ThemeProvider theme={isDark? darkTheme :lightTheme}>에 prop추가 
+```
+function App() {
+  const isDark = useRecoilValue(isDarkAtom);
+  return (
+  <>
+  <ThemeProvider theme={isDark? darkTheme :lightTheme}>
+    
+  <GlobalStyle />
+  <Router />
+  <ReactQueryDevtools initialIsOpen={true} />
+ </ThemeProvider>
+  </>
+  
+  );
+}
+export default App;
+```
+
+step 4. Coins.tsx파일에 
+아래 컴포넌트 추가해주고 
+```
+const setDarkAtom = useSetRecoilState(isDarkAtom);
+  const toggleDarkAtom = ()=>setDarkAtom((prev)=>!prev);
+  ```
+버튼에 추가!!
+  ```
+   <button onClick={toggleDarkAtom}>Toggle Mode</button>
+   ```
+
+step 4-2. Chart.tsx에 
+
+const isDark = useRecoilValue(isDarkAtom); 컴포넌트 추가해주고, 
+
+ theme: {
+              mode: isDark? "dark": "light"
+            }, 차트 옵션에 prop추가 

@@ -64,6 +64,7 @@ interface RouteState {
   name: string;
 };
 
+
 interface InfoData {
   id:string;
   name:string;
@@ -139,7 +140,11 @@ const OverviewItem = styled.div`
 const Description = styled.p`
   margin: 20px 0px;
 `;
-function Coin() {
+
+interface ICoinProps {
+  
+}
+function Coin({}:ICoinProps) {
   const { coinId } = useParams<Params>();
   const { state } = useLocation<RouteState>();
   const priceMatch = useRouteMatch("/:coinId/price");

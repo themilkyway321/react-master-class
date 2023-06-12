@@ -963,7 +963,7 @@ export default NotFound;
 
 useNavigate
 
-링크이동인데, <Link />는 유저가 직접 클릭해야 이동하는 반면, useNavigate는 자동으로 이동
+링크이동인데, ```<Link />```는 유저가 직접 클릭해야 이동하는 반면, useNavigate는 자동으로 이동
 
 Header.tsx파일
 

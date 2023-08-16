@@ -1,5 +1,11 @@
 ## styled-components 기본 사용방법
 
+리액트에서 스타일을 주는 3가지 방법을 배웠었지. 
+https://github.com/themilkyway321/react-for-beginners/tree/main/react-basic-study#react-%EC%8A%A4%ED%83%80%EC%9D%BC
+
+styled-components로 위 3가지보다 조금 더 간단하게 스타일을 줄 수 있다. 
+
+
 styled-components로 스타일을 간단하게 적용하기 
 <BoxOne></BoxOne>
 
@@ -337,7 +343,10 @@ const Box = styled.div`
 
 위에 있는 것을 아래 코드 처럼 작성할 수 도 있다. 
 
-Emoji 라는 컴포넌트를 만들어서 재사용. 
+Emoji 라는 컴포넌트를 만들어서, 부모 컴포넌트 안에서 사용 ${Emoji}:hover {
+  font-size: 200px; 
+} 이런식으로.
+
 hover 효과는 Box 컴포넌트 하위에 있는 Emoji 컴포넌트에만 적용된다. 
 ```
 import styled, {keyframes} from "styled-components";
@@ -389,15 +398,17 @@ function App() {
 export default App;
 ```
 
-## theme 
+## Theme 
 
 styled components는 ThemeProvider wrapper 컴포넌트를 통해 전체 테마를 지원. 
-index.js에 파일에 ThemeProvider 를 삽입해주고. 
+index.js파일에 ThemeProvider 안에 App을 포함시켜준다. 
+
 ```
-ThemeProvider 안에 App을 포함시켜준다. 
-<ThemeProvider theme={lightTheme}>
-      <App />
-      </ThemeProvider>
+<React.StrictMode>
+	<ThemeProvider theme={}>
+      		<App />
+      </ThemeProvider> 
+</React.StrictMode>
 ```
 
 index.js 파일 
@@ -429,7 +440,7 @@ root.render(
 
 ```
 
-App.js에는 이런식으로 값을 가져올 수 있음
+App.js에 파일에는 ThemeProvider의 props들을 사용할 수 있다. 
 ```
 const Father = styled.div`
 background-color: ${(props) => props.theme.backgroundColor}
@@ -497,6 +508,7 @@ function App() {
 
 export default App;
 ```
+<br><br>
 ## TypeScript를 위한 set up
 npx create-react-app 내 앱 이름 --template typescript<br>
 npm i --save-dev @types/styled-components<br>

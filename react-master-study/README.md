@@ -534,13 +534,10 @@ const plus = (a:number, b:number) => a + b;
 
 타입스크립트는 별 문제가 없는게 확인되면, 코드에 오류가 없는게 확인되면, 자바스크립트 코드로 return 한다. 
 
-- 설치 방법
-npx create-react-app 앱이름 --template typescript 
+- 설치 방법: npx create-react-app 앱이름 --template typescript 
+- 타입스크립트와 리액트를 같이쓸 때는, js파일이 아니라, tsx파일로 생성된다.
+- 어떤 라이브러리나 패키지는 타입스크립트로 만들어진게 아니기 때문에, 타입스크립트에게 이런 라이브러리나 패키지가 무엇인지 알려줘야한다. 예를 들면, npm i --save-dev @types/styled-components 로 설치하면, 타입스크립트가 styled-components 패키지를 이해할 수 있게된다. (누군가가 타입들을 이미 다 작성해줬기 때문!)
 
-아래처럼 원하는 라이브러리를 타입 스크립트로 읽어올 수 도 있다. 
-아래 예시 styled-components 라이브러리를 읽어오는 방법 
-npm i --save-dev @types/styled-components
-npm i styled-components
 
 
 ## Typing the Props

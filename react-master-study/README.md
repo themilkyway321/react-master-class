@@ -638,32 +638,52 @@ interface CircleProps {
 
 아래와 같은 코드를 보면 Circle에는 borderColor가 옵션인데, Container에는 borderColor가 필수라서, 아래와 같이 수정.  
 
-<Container bgColor={bgColor} borderColor={borderColor ?? bgColor} />이렇게 주면 borderColor ?? bgColor 뜻은 borderColor가 빈값이면 배경값을 주렴. 
+- <Container bgColor={bgColor} borderColor={borderColor ?? bgColor} />이렇게 주면 borderColor ?? bgColor 뜻은 borderColor가 빈값이면 배경값을 주렴.
+- text를 옵션으로 주는 방식. text props가 없으면 default로 표시된다. 
 
 ```
 import styled from "styled-components";
 
+interface CircleProps {
+  bgColor: string;
+  borderColor?:string;
+  text?:string;
+}
 interface ContainerProps {
-  bgColor:string;
+  bdgColor:string;
   borderColor:string;
 }
 const Container = styled.div<ContainerProps>`
-width: 200px;
-height:200px;
-background-color: ${(props) => props.bgColor};
-border-radius: 100px;
-border: 1px solid ${props => props.borderColor};
+  width: 200px;
+  height: 200px;
+  background-color: ${(props) => props.bdgColor};
+  border-radius: 100px;
+  border: 1px solid ${(props)=>props.borderColor};
 `;
 
-interface CircleProps {
-  bgColor:string;
-  borderColor?:string;
-}
-function Circle({bgColor,borderColor}: CircleProps){
-  return <Container bgColor={bgColor} borderColor={borderColor ?? bgColor} />;
+
+function Circle({bgColor, borderColor,text="default"}: CircleProps) {
+  return <Container bdgColor={bgColor} borderColor={borderColor ?? bgColor}>{text}</Container>;
 }
 
 export default Circle;
+```
+
+App.tsx파일
+
+```
+import Circle from "./Circle";
+
+
+function App() {
+  return (
+    <div>
+      <Circle bgColor="yellow" borderColor="red" />
+      <Circle bgColor="tomato" text="i am here" />
+    </div>);
+}
+
+export default App;
 ```
 
 ## 타입스크립트 state
@@ -715,6 +735,9 @@ const onSubmit = (event: React.FormEvent<HTMLFormElement>) 이벤트가 무엇�
 - 이벤트 종류
 https://legacy.reactjs.org/docs/events.html
 
+- useState("");  이렇게 주니까, 타입스크립트는 value가 string일것이라고 알게되고, setValue가 string 값의 인자를 받을 함수라는 것을 알게되었다.
+- event:React.FormEvent<HTMLInputElement> 이렇게 이벤트의 타입을 알려주게 되는 것이지. 
+
 ```
 import { useState } from "react";
 import styled, {keyframes} from "styled-components";
@@ -755,6 +778,19 @@ function App() {
 export default App;
 ```
 
+>> 추가 팁: 아래 2개는 같은 코드.
+1. 
+```
+const value = event.currentTarget.value;
+```
+
+2. ( es6문법 사용)
+```
+const {
+currentTarget: { value },
+} = event;
+
+```
 
 ## 타입스크립트에서 theme 사용 
 https://styled-components.com/docs/api#typescript
@@ -766,6 +802,9 @@ https://styled-components.com/docs/api#typescript
 
 
 styled.d.ts파일 
+
+DefaultTheme는 기본적으로 props.theme의 인터페이스로 사용됩니다.
+기본적으로 DefaultTheme 인터페이스는 비어 있으므로 확장해야 합니다.
 ```
   // import original module declarations
 import 'styled-components';

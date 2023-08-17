@@ -551,26 +551,77 @@ background-color:${(props) => props.bgColor};
 
 추가적으로 타입스크립트에게 props의 타입을 설명해주는 interface를 사용하면, 코드 실행전 에러가 나타나서 고칠 수 있음 
 
+Circle.tsx파일을 보면
+- Circle({bgColor}: CircleProps) Circle은 bgColor라는 props를 받는데, 그것의 타입은 CircleProps이다. 
+- Circle은 컨테이너라는 컴포넌트로 반환하게 되는데, 반환할때, 이 컨테이너의 props는 bdgColor라고 명칭. <Container bdgColor={bgColor} />
+
 ```
 import styled from "styled-components";
 
+interface CircleProps {
+  bgColor: string;
+}
 interface ContainerProps {
-  bgColor:string;
+  bdgColor:string;
 }
 const Container = styled.div<ContainerProps>`
-width: 200px;
-height:200px;
-background-color: ${(props) => props.bgColor};
-border-radius: 100px;
+  width: 200px;
+  height: 200px;
+  background-color: ${(props) => props.bdgColor};
+  border-radius: 100px;
 `;
-interface CircleProps {
-  bgColor:string;
-}
-function Circle({bgColor}: CircleProps){
-  return <Container bgColor={bgColor}/>;
+
+
+function Circle({bgColor}: CircleProps) {
+  return <Container bdgColor={bgColor} />;
 }
 
 export default Circle;
+```
+
+App.tsx
+
+```
+import Circle from "./Circle";
+
+
+function App() {
+  return (
+    <div>
+      <Circle bgColor="yellow" />
+      <Circle bgColor="tomato" />
+    </div>);
+}
+
+export default App;
+```
+
+index.tsx
+
+```
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { ThemeProvider } from 'styled-components';
+import App from './App';
+
+
+const darkTheme = {
+  textColor:"whitesmoke",
+  backgroundColor:"#111",
+};
+const lightTheme = {
+  textColor:"#111",
+  backgroundColor:"whitesmoke",
+};
+ReactDOM.render(
+  <React.StrictMode>
+    <ThemeProvider theme={darkTheme}>
+      <App />
+    </ThemeProvider>
+  </React.StrictMode>,
+  document.getElementById("root")
+);
+
 ```
 
 ## Optional Props

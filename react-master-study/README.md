@@ -878,23 +878,76 @@ const Container = styled.div`
 
 react-master-temp repository 
 
-npm i react-router-dom@6.4
-
 npx create-react-app 앱이름 --template typescript 
-
 
 npm i --save-dev @types/styled-components
 
 npm i styled-components
 
+npm i react-router-dom@6.4
+
+
 ### 1. BrowserRouter
-6에서는 (BrowserRouter)
  Switch 대신 Routes를 썼다는 점. element부분 차이가 있음 
- ```
-<Routes>
-      <Route path="/" element={<Home />}></Route>
-      <Route path="/about" element={<About />}></Route>
-</Routes>
+
+ step 1. Home.tsx, About.tsx파일 생성하고
+ step 2. Header.tsx파일 생성하고
+
+Header.tsx
+```
+import { Link } from "react-router-dom";
+
+function Header(){
+  return(
+  <header>
+    <ul>
+      <li><Link to={"/"}>Home</Link></li>
+      <li><Link to={"/about"}>About</Link></li>
+    </ul>
+  </header>)
+}
+export default Header;
+```
+
+step 3. Router.tsx파일 생성하고 BrowserRouter, Route, Routes 사용 
+
+Router.tsx
+```
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Header from "./components/Header";
+import Home from "./screens/Home";
+import About from "./screens/About";
+
+function Router(){
+  return<>
+  <BrowserRouter>
+  <Header />
+    <Routes>
+        <Route path="/" element={<Home />}></Route>
+        <Route path="/about" element={<About />}></Route>
+    </Routes>
+  </BrowserRouter>
+  </>
+}
+
+export default Router;
+```
+
+step 4. App.tsx 에 Router를 import해준다.  index.tsx 에는 변경된 것이 없음. 
+
+
+```
+import Router from "./Router";
+
+function App() {
+  return (
+    <div >
+      <Router />
+    </div>
+  );
+}
+
+export default App;
 ```
 
 <br>
@@ -919,57 +972,69 @@ Router.tsx 파일
 
 createBrowserRouter 사용 url을 부모와 자식 관계로 주고 있음. 
 전체 route의 길잡이/지도라고 볼 수 있지. 
+
+Step 1. Router.tsx에서 createBrowserRoute를 사용하여 부모와 자식url을 써준다. 
+- 부모 App.tsx 
+- / 라는 주소를 들어갔을때, Home.tsx 페이지를 보여줘 
+- /about 라는 주소면, About.tsx 페이지 보여줘.
+
+
+
+Router.tsx
+
 ```
-import { createBrowserRouter , Route, Routes, } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import Home from "./screens/Home";
 import About from "./screens/About";
-import Root from "./Root";
+import App from "./App";
+
 
 const router = createBrowserRouter([
   {
     path:"/",
-    element:<Root />,
+    element:<App />,
     children:[
       {
         path:"",
-        element:<Home />,
+        element:<Home />
       },
       {
         path:"about",
-        element:<About />,
+        element:<About />
       }
     ]
   }
 ])
+
+
 export default router;
 ```
 
-Root.tsx 파일 (이해를 쉽게 하기 위해 App.txs에서 이름 변경)
+Step 2. App.tsx  수정.
+:Outlet을 사용하여 Router에 있는 자식 링크들을 가져올 수 있지.
 
-Outlet을 사용하여 Router에 있는 링크들을 가져올 수 있지.
+
 ```
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import Header from './components/Header';
+import { Outlet } from "react-router-dom";
+import Header from "./components/Header";
 
-
-
-function Root() {
+function App() {
   return (
-   <div>
-    <Header />
-    <Outlet />
-   </div>
+    <div >
+      <Header />
+      <Outlet />
+    </div>
   );
 }
 
-export default Root;
-
+export default App;
 ```
+
+Step 3. index에는 기존에 <App />대신 RouterProvider를 써준다. 이 아이는  router라고 불리는 props를 갖는다. 이때 이 {router}는 Router.tsx에서 가져온 것. 
 
 
 index.tsx파일
-RouterProvider는 router라고 불리는 props를 가진다.  (Router.tsx 파일에서 만들었던 router)
+
 ```
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -983,7 +1048,7 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router}/>
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
 
@@ -993,24 +1058,7 @@ root.render(
 Header.tsx, Home.tsx, About.tsx 코드는 BrowserRouter랑 코드가 동일해 
 
 
-Header.tsx파일 
 
-```
-import { Link } from "react-router-dom";
-
-function Header(){
-  return (
-  <header>
-    <ul>
-      <li><Link to={"/"}>Home</Link></li>
-      <li><Link to={"/about"}>About</Link></li>
-    </ul>
-  </header>
-  );
-}
-
-export default Header;
-```
 
 ### errorElement
 

@@ -1797,9 +1797,32 @@ const {isLoading, data} = useQuery<ICoin[]>("allCoins", fetchCoins)
 
 - useQuery는 가 fetcher함수를 부르고 fecher함수가 끝나면, json을 data에 넣고, isLoading은 false가 된다. 
 
-3. React Query는 devtools을 가지고 있다. 
 
- devtools를 통해 데이터들이 캐시에 어떻게 저장되는지 볼수 있음. 
+>> 위와 같은 방법으로 Coin.tsx파일에도 적용!
+
+다만 coinId를 argument(인자)로 넘겨줘야하므로 
+() => fetchCoinInfo(coinId) 이것을 넣어주었다. 
+
+["info", coinId] 이렇게 넣어준 이유는 coinId가 info랑 price 같아서. key는 각각 다른key, 즉 쿼리마다 고유한 key를 가져야함 
+
+```
+  const {isLoading: infoLoading, data: infoData} = useQuery<InfoData>(["info", coinId], () => fetchCoinInfo(coinId));
+  const {isLoading: tickersLoading, data: tickersData} = useQuery<PriceData>(["tickers", coinId], () => fetchCoinTickers(coinId));
+```
+
+또한, fetch함수로 
+coinId를 넘겨줄 때, 이렇게 쓸 수 있다. 
+
+```
+export function fetchCoinInfo(coinId:string){
+  return fetch(`${BASE_URL}/coins/${coinId}`).then((response)=> response.json());
+}
+```
+
+### React Query는 devtools을 가지고 있다. 
+
+- import { ReactQueryDevtools } from 'react-query/devtools' 를 통해 실시간으로 데이터가 fetch되는지 볼수있음.
+- devtools를 통해 데이터들이 캐시에 어떻게 저장되는지 볼수 있음. 
 
 App.tsx파일
 ```
@@ -1817,17 +1840,115 @@ function App() {
 export default App;
 ```
 
-Coin.tsx파일 
+### react query로 설정한 시간마다 fetch를 할수있다.
 
-coinId를 argument(인자)로 넘겨줘야하므로 
-() => fetchCoinInfo(coinId) 이것을 넣어주었다. 
+예시:{refetchInterval:5000 } 을 줘서 5초마다 fetch해주라고 할수있다. 
 
-
-["info", coinId] 이렇게 넣어준 이유는 coinId가 info랑 price 같아서. key는 각각 다른key, 즉 쿼리마다 고유한 key를 가져야함 
 ```
-  const {isLoading: infoLoading, data: infoData} = useQuery<InfoData>(["info", coinId], () => fetchCoinInfo(coinId));
-  const {isLoading: tickersLoading, data: tickersData} = useQuery<PriceData>(["tickers", coinId], () => fetchCoinTickers(coinId));
-  ```
+const {isLoading:tickersLoading, data:tickersData} = useQuery<PriceData>(["tickers", coinId], ()=> fetchCoinTickers(coinId),{refetchInterval:5000});
+```
+
+
+### 차트.tsx
+
+1. 이제 Chart.tsx에서 coinId를 받아와야하는데, 2가지 방법이 있지
+
+- 방법1: Chart에 useParams 를 통해 링크에서 coinId를 가져올수도 있고,
+- 방법2:  <Chart coinId={coinId} /> 에 props를 넘겨서 받아올 수 있어. 여기서는 이 방법2를 사용함. 
+
+2. APEX CHARTS 오픈 소스 차트 사용 
+- https://apexcharts.com
+- npm install --save react-apexcharts apexcharts
+
+```
+import { useQuery } from "react-query";
+import { fetchCoinHistory } from "../api";
+import ApexChart from "react-apexcharts";
+
+interface ChartProps {
+  coinId:string;
+}
+interface IHistorical {
+    time_open: number;
+    time_close: number;
+    open: string;
+    high: string;
+    low: string;
+    close: string;
+    volume: string;
+    market_cap: number;
+  }
+
+function Chart({coinId}:ChartProps){
+  const {isLoading, data} = useQuery<IHistorical[]>(["ohlcv", coinId],()=>fetchCoinHistory(coinId));
+  return (<div>
+    {isLoading? "Chart Loading..." :(
+      <>
+    <ApexChart
+    type="line"
+    series={[
+      {
+        name:"price",
+        data: data?.map((price) => Number(price.close)) as number[]
+      },
+    ]}
+    options={{
+      theme: {
+        mode: "dark"
+      },
+      chart: {
+        height: 300,
+        width: 500,
+        toolbar: {
+          show: false
+        },
+        background: "transparent",
+      },
+      grid: {
+        show: false
+      },
+      yaxis: {
+        show: false
+      },
+      xaxis: {
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        labels: { show: false },
+        type: "datetime",
+        categories: data?.map((price) => price.time_close)
+      },
+      stroke: {
+        curve: "smooth",
+        width: 4,
+      },
+      fill: {
+        type: "gradient", gradient: { gradientToColors: ["#0be881"], stops: [0, 100] },
+      },
+      colors: ["#0fbcf9"],
+      tooltip:{
+        y:{
+          formatter:(value)=>`$ ${value.toFixed(2)}`
+        }
+      }
+    }}
+    />
+    </>
+    )}
+  </div>)
+}
+
+export default Chart;
+```
+
+
+## React Helmet
+html의 head 역할!
+https://www.npmjs.com/package/react-helmet
+
+npm i react-helmet
+npm i --save-dev @types/react-helmet
+
+
 
 =========6-state-management==========
 

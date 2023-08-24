@@ -1648,7 +1648,7 @@ Coins.tsx에서 두줄로 가져왔었어 =>한줄로 줄일 수 있음.
 
 >단축키
 
-Ctrl(Command)+K: 같은 문자열 선택
+Ctrl(Command)+q: 같은 문자열 선택
 
 Shift+Alt(Option)+i: 선택한 모든 문자열에 가장 우측 끝으로 포커싱
 
@@ -1660,7 +1660,7 @@ Ctrl(Command)+Shift+오른쪽 화살표: 현재 선택한 문자열을 기준으
 
 console.log(데이터)한다음 => 
 전역변수로 저장 => 
-Object.keys(전역변수이름).join() 과 Object.values(전역변수이름).map(v=>type of).join()등으로 해서 한꺼번에 가져온다!! 
+Object.keys(전역변수이름).join() 과 Object.values(전역변수 이름).map(v=>typeof v).join()등으로 해서 한꺼번에 가져온다!! 
 
 주의해야할점은 object라고 떴지만, 배열의 object인 경우가 있다. ITag의 인터페이스 정의해주고 tags:ITag[]로 줄 수 있다. 
 
@@ -1686,27 +1686,45 @@ Object.keys(전역변수이름).join() 과 Object.values(전역변수이름).map
 
 탭으로 연결하는 링크를 만들어주고 
 ```
- <Tabs>
-      <Tab isActive={chartMatch !== null}><Link to={`/${coinId}/chart`}>Chart</Link></Tab>
-      <Tab isActive={priceMatch !== null}> <Link to={`/${coinId}/price`}>Price</Link></Tab>
-    </Tabs>
+  <Tabs>
+            <Tab>
+              <Link to={`/:coinId/price`}>Price</Link>
+            </Tab>
+            <Tab>
+              <Link to={`/:coinId/chart`}>Chart</Link>
+            </Tab>
+          </Tabs>
 ```
 
 useRouteMatch 라는 훅 사용. react router dom에서 제공하는 hook
 
 =>특정 url에 있는지 확인해주는 것
 
-price 링크에 있으면 priceMatch가 object로 보여주는데 object안에 true가 있음. 
+### useRouteMatch 
+ react router dom에서 제공하는 hook으로 특정 url에 있으면 true를 반환해준다. 
+
+const priceMatch = useRouteMatch("/:coinId/price");
+cosole.log(priceMatch)해보면 다음과 같은 결과가 나온다. 
+```
+{
+    "path": "/:coinId/price",
+    "url": "/:coinId/price",
+    "isExact": true,
+    "params": {
+        "coinId": ":coinId"
+    }
+}
+```
 
 
 ```
   const priceMatch = useRouteMatch("/:coinId/price");
   const chartMatch = useRouteMatch("/:coinId/chart");
-  ```
+```
 
-  그래서 interfcae Tab에 isActive라는 props를 가진다고 해줄거야, 이 props는 boolean타입이라는 것을 정의해주고, 
+그래서 interfcae Tab에 isActive라는 props를 가진다고 해줄거야, 이 props는 boolean타입이라는 것을 정의해주고, 
 
-  const Tab = styled.span<{ isActive: boolean }>`
+const Tab = styled.span<{ isActive: boolean }>`
 
 chartMatch !== null 이 true면 isActive는 trur가된다. 
   <Tab isActive={chartMatch !== null}><Link to={`/${coinId}/chart`}>Chart</Link></Tab>
@@ -1726,11 +1744,13 @@ isActive는 true면, 글자 색을 accentColor로 변경!! (즉, 해당 탭이 �
 React 애플리케이션에서 서버 state를 fetching, caching, synchronizing, updating할 수 있도록 도와주는 라이브러리
 "global state"를 건드리지 않고 React 및 React Native 애플리케이션에서 데이터를 가져오고, 캐시하고, 업데이트합니다.
 
-React Query의 제일 큰 장점은 api를 페이지를 로딩할때마다 불러오지 않아도 된다. 캐시에 데이터를 저장해주기 때문에
+- React Query를 사용하면 useEffect를 사용하여, setCoins,, setLoading..이런 부분들을 대신해서, 한줄 코드로 간단하게 쓸 수 있다! 
+- 또한, React Query의 제일 큰 장점은 api를 페이지를 로딩할때마다 불러오지 않아도 된다. 캐시에 데이터를 저장해주기 때문에
 
-index.tsx파일에 다음과 같이 추가
+React Query 사용하는 방법
 
-QueryClient와  QueryClientProvider를 삽입하고 코드넣어준다. 
+1단계: index.tsx파일에  QueryClient와 QueryClientProvider를 삽입하고 코드넣어준다.
+
 ```
 import ReactDOM from 'react-dom';
 import { ThemeProvider } from 'styled-components';
@@ -1753,17 +1773,23 @@ ReactDOM.render(
 );
 ```
 
-React Query사용하기 위해
+2단계. ts파일로 fetcher 함수를 만들어야한다. 여기에서는 api.ts파일을 생성. 
 
-1. fetch함수를 만들어야 한다. fetch를 하는 함수이다. 
-api.ts파일을 확인해봐라 (따로, 파일을 만들어주었다. )
+왜 ts 파일? tsx라는게 ts + react 문법을 사용한다라는 의미인데, 이 파일에서는 react 문법을 사용하는 함수가 없기 때문. 
 
-2. useQuery 훅 사용 import { useQuery } from "react-query";
+```
+export function fetcher(){
+  return fetch("https://api.coinpaprika.com/v1/coins").then((response)=> response.json());
+}
+```
+
+3단계: Coins.tsx로 가서 useQuery  사용 
+
 ```
 const {isLoading, data} = useQuery<ICoin[]>("allCoins", fetchCoins)
 ```
 
-- useQuery 2가지 인자를 필요로 하는데, 첫번째는 고유키(고유식별자) 두번째는 fetch함수
+- useQuery 2가지 인자를 필요로 하는데, 첫번째는 고유키(allCoins와 같은 고유식별자) 두번째는 fetch함수
 
 - useQuery는 isLoading이라는 불리는 boolean값을 return한다. 또 fechCoins의 data를 가져온다. 
 

@@ -1949,8 +1949,12 @@ npm i react-helmet
 npm i --save-dev @types/react-helmet
 
 
+## 코인 프로젝트 배포 
 
-=========6-state-management==========
+https://themilkyway321.github.io/coin-paprika/ 로 프로젝트 배포  
+
+
+## =========6-state-management==========
 
   Recoil은 React JS에서 사용할 수 있는 state management library.
 
